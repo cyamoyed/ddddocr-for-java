@@ -25,9 +25,11 @@ import top.gcszhn.d4ocr.utils.LogUtils;
 import top.gcszhn.d4ocr.utils.ONNXRuntimeUtils;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -43,7 +45,17 @@ class OCREngineOldImpl implements OCREngine {
     /**模型资源的静态初始化 */
     static {
         try (InputStream is = OCREngineOldImpl.class.getResourceAsStream("/d4/common_old_charset.json")) {
-            charsetArray = JSONArray.parseArray(new String(is.readAllBytes(), "UTF-8"));
+            if (is != null) {
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead;
+                byte[] data = new byte[1024];
+                while ((nRead = is.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+                charsetArray = JSONArray.parseArray(buffer.toString("UTF-8"));
+            } else {
+                LogUtils.printMessage("无法加载字符集资源文件", LogUtils.Level.ERROR);
+            }
             String javaTmpDir = System.getProperty("java.io.tmpdir", ".");
             File appTmpDir = new File(javaTmpDir, "d4ocr");
             appTmpDir.mkdirs();
@@ -79,7 +91,7 @@ class OCREngineOldImpl implements OCREngine {
             ONNXRuntimeUtils onnx = new ONNXRuntimeUtils(); 
             OnnxTensor inputTensor = onnx.createTensor(data, shape);
             OrtSession model = onnx.createSession(modelFile.getAbsolutePath());
-            OrtSession.Result result = model.run(Map.of("input1",  inputTensor))) {
+            OrtSession.Result result = model.run(Collections.singletonMap("input1",  inputTensor))) {
             
             OnnxTensor indexTensor = (OnnxTensor) result.get(0);
             LogUtils.printMessage("score type: " + indexTensor.getInfo().type.name(), LogUtils.Level.DEBUG);

@@ -36,7 +36,7 @@ public class OCREngineTest {
                 "AENZ", "ALNQ", "KVXZ", "DKQT", "极速换新", "8A62N1", "九乘六等于？", "jepv"
         };
         for (String value : name) {
-            for (int i=0; i < 50; i++) {
+//            for (int i=0; i < 50; i++) {
                 BufferedImage image = IOUtils.read("testData/" + value + ".png");
                 String predict = engine.recognize(image);
                 if (predict == null) predict = "";
@@ -45,7 +45,7 @@ public class OCREngineTest {
                 System.out.printf("Memory: %dMB/%dMB\n", 
                     (runtime.totalMemory() - runtime.freeMemory()) >> 20, 
                     runtime.maxMemory() >> 20 );
-            }
+//            }
         }
     }
 }
